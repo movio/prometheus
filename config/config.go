@@ -792,6 +792,7 @@ func (c *MarathonSDConfig) UnmarshalYAML(unmarshal func(interface{}) error) erro
 // KubernetesSDConfig is the configuration for Kubernetes service discovery.
 type KubernetesSDConfig struct {
 	APIServers      []URL          `yaml:"api_servers"`
+	Kind            string         `yaml:"kind"`
 	InCluster       bool           `yaml:"in_cluster,omitempty"`
 	BasicAuth       *BasicAuth     `yaml:"basic_auth,omitempty"`
 	BearerToken     string         `yaml:"bearer_token,omitempty"`
@@ -815,6 +816,9 @@ func (c *KubernetesSDConfig) UnmarshalYAML(unmarshal func(interface{}) error) er
 	if err := checkOverflow(c.XXX, "kubernetes_sd_config"); err != nil {
 		return err
 	}
+	if c.Kind != "nodes" && c.Kind != "service_endpoints" && c.Kind != "pods" && c.Kind != "api_servers" {
+		return fmt.Errorf("Unknown Kubernetes SD kind %q", c.Kind)
+	}
 	if len(c.APIServers) == 0 {
 		return fmt.Errorf("Kubernetes SD configuration requires at least one Kubernetes API server")
 	}
@@ -824,7 +828,6 @@ func (c *KubernetesSDConfig) UnmarshalYAML(unmarshal func(interface{}) error) er
 	if c.BasicAuth != nil && (len(c.BearerToken) > 0 || len(c.BearerTokenFile) > 0) {
 		return fmt.Errorf("at most one of basic_auth, bearer_token & bearer_token_file must be configured")
 	}
-
 	return nil
 }
 
