@@ -38,6 +38,12 @@ type nodeDiscovery struct {
 }
 
 func (d *nodeDiscovery) run(ctx context.Context, ch chan<- []*config.TargetGroup) {
+	nodes, _, err := d.getNodes()
+	if err != nil {
+		log.Errorf("Cannot initialize node collection: %s", err)
+	}
+	d.nodes = nodes
+
 	select {
 	case ch <- []*config.TargetGroup{d.updateNodesTargetGroup()}:
 	case <-ctx.Done():
